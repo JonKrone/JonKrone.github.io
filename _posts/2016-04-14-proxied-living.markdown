@@ -16,24 +16,24 @@ A Proxy is made of a **target** and a **handler**: `new Proxy(target, handler)`.
 We'll start simple and report the value of a property when it is looked up. In the example below, we customize property lookup by defining a *trap*, `get(target, name)`, in the `handler` and construct a Proxy with it and the target.
 
 ```javascript
-    const target = {
-		duck: 'QUACK',
-		cow: 'MOO',
-	}	
-    const handler = {
-		// lookup trap
-        get(target, key) {
-			console.log(`target says ${target[key]}!`);
-			return target[key];
-        },
-    }
-    const talkingTarget = new Proxy(target, handler);
+const target = {
+	duck: 'QUACK',
+	cow: 'MOO',
+}	
+const handler = {
+	// lookup trap
+	get(target, key) {
+		console.log(`target says ${target[key]}!`);
+		return target[key];
+	},
+}
+const talkingTarget = new Proxy(target, handler);
 
-	// now, when we get the property of this object, it is also logged! 
-	talkingTarget.cow;
-	> target says MOO!
-	talkingTarget.unicorn;
-	> target says undefined!
+// now, when we get the property of this object, it is also logged! 
+talkingTarget.cow;
+> target says MOO!
+talkingTarget.unicorn;
+> target says undefined!
 ```
 
 Nice! In a way, we've overridden the standard behavior of accessing a property, one of the most common (if not most common) things we do in JavaScript. With Proxy, we are able to manipulate some of the fundamental semantics of the language, something not possible before ES6. It opens up to JavaScript coders a new type of metaprogramming, or programming which can manipulate itself.
@@ -60,23 +60,23 @@ The *handler* has a unique definition for each of the operations it can intercep
 The  `in` operation checks for the existence of some key in an Object. In JavaScript, however, Arrays are Objects so the operation simply checks whether an index exists, not the value. As an example, `'str' in ['str'] //=> false` but `0 in ['str'] //=> true`. I am sure this is well-reasoned but it isn't immediately intuitive. Proxies can intercept `in` with the *has* trap, so let's make an augmented Array factory that will check for values instead of keys.
 
 ```javascript
-	function createArray(...arr) {
-		// accept an array and return a Proxy
-		return new Proxy(...arr, {
-			// intercept 'in' operation
-			has(target, value) {
-				return target.indexOf(value) !== -1
-			}
-		})
-	}
+function createArray(...arr) {
+	// accept an array and return a Proxy
+	return new Proxy(...arr, {
+		// intercept 'in' operation
+		has(target, value) {
+			return target.indexOf(value) !== -1
+		}
+	})
+}
 
-	const supplies = createArray(['tacos', 'beer', 'lime']);
+const supplies = createArray(['tacos', 'beer', 'lime']);
 
-	// checks for value in an array, not the index
-	if ('tacos' in supplies) {
-		console.log('Wahoo!');
-	}
-	> Wahoo!
+// checks for value in an array, not the index
+if ('tacos' in supplies) {
+	console.log('Wahoo!');
+}
+> Wahoo!
 ```
 
 Cool, eh?
@@ -88,55 +88,55 @@ Cool, eh?
 Trapping *set*, or assignment, operations (`target.key = value`, the key is the equals sign) gives us a sneak peek at a value before it is assigned. With that information, we can do things like validate values (type-check), apply the change elsewhere (data binding) or profile the data passing through. Below, we make a function `track` that accepts an Object and returns a Proxy for the Object with a history of its properties. This would be useful for keeping analytics on how data is changing or if we had some feature like an input field and we wanted users to be able to undo.
 
 ```javascript
-	function track(obj) {
-		const history = {};
+function track(obj) {
+	const history = {};
 
-		// add initial property values to history
-		Object.keys(obj).map(prop => history[prop] = [ obj[prop] ] )
+	// add initial property values to history
+	Object.keys(obj).map(prop => history[prop] = [ obj[prop] ] )
 
-		const trackedObj = new Proxy(obj, {
-			// Intercept and track changes
-			set(target, key, value, receiver) {
-				key in history
-					? history[key].push(value)
-					: history[key] = [value];
-				target[key] = value;
-				return true;
-			}
-		});
+	const trackedObj = new Proxy(obj, {
+		// Intercept and track changes
+		set(target, key, value, receiver) {
+			key in history
+				? history[key].push(value)
+				: history[key] = [value];
+			target[key] = value;
+			return true;
+		}
+	});
 
-		// Attach history via a Symbol on the tracked Object
-		// A Symbol avoids accidentally overriding a property, allowing us to return only a decorated Object
-		const hist = Symbol.for('history');
-		trackedObj[hist] = history;
-
-		return trackedObj;
-	}
-
-	const product = {
-		name: 'Chocolate!',
-		price: 9.99,
-		quantity: 18,
-		sell(num) {
-			this.quantity -= num;
-			return this.price * num;
-		},
-	}
-	const trackedProduct = track(product);
-
+	// Attach history via a Symbol on the tracked Object
+	// A Symbol avoids accidentally overriding a property, allowing us to return only a decorated Object
 	const hist = Symbol.for('history');
-	console.log(trackedProduct[hist]);
-	> { name: ['Chocolate!'], price: [9.99], quantity: [18] }
+	trackedObj[hist] = history;
 
-	// lower the price, sell 1, then sell 2
-	trackedProduct.price = 7.99;
-	trackedProduct.sell(1);
-	trackedProduct.sell(2);
+	return trackedObj;
+}
 
-	console.log(trackedProduct[hist])
-	> { name: ['Chocolate!'],
-		price: [9.99, 7.99],
-		quantity: [18, 17, 15] }
+const product = {
+	name: 'Chocolate!',
+	price: 9.99,
+	quantity: 18,
+	sell(num) {
+		this.quantity -= num;
+		return this.price * num;
+	},
+}
+const trackedProduct = track(product);
+
+const hist = Symbol.for('history');
+console.log(trackedProduct[hist]);
+> { name: ['Chocolate!'], price: [9.99], quantity: [18] }
+
+// lower the price, sell 1, then sell 2
+trackedProduct.price = 7.99;
+trackedProduct.sell(1);
+trackedProduct.sell(2);
+
+console.log(trackedProduct[hist])
+> { name: ['Chocolate!'],
+	price: [9.99, 7.99],
+	quantity: [18, 17, 15] }
 ```
 
 This implementation keeps a simple history of properties in an Array. Alternatively, changes could be recorded in a database if you wanted more persistent information or the history could be kept in a diff fashion. Note that we do not decrement quantity directly yet its changes are recorded in the history. The changes are triggered indirectly by calling the `sell` function because the `this` reference when calling `sell` is the Proxy and not the original Object.  Conveniently, this requires no extra work, is a benefit of the ever-dreaded looseness of JavaScript's `this` context, and shows that Proxy continues to work as expected in Objects and classes.
@@ -152,52 +152,51 @@ How often have you been blasted by a misspelled property name or discovered that
 Let's use a Proxy to alert us if we try to access a property that does not exist and suggest possible alternatives.
 
 ```javascript
-	// We'll use the nice and tiny fuzzy-search npm package, fuzzy,
-	// for generating a list of alternative properties.
-	import { fuzzy } from 'fuzzy';
+// We'll use the nice and tiny fuzzy-search npm package, fuzzy,
+// for generating a list of alternative properties.
+import { fuzzy } from 'fuzzy';
 
-	const accessCheck = {
-		get(target, key) {
-			if (!(key in target)) {
-				const allKeys = Object.keys(target);
+const accessCheck = {
+	get(target, key) {
+		if (!(key in target)) {
+			const allKeys = Object.keys(target);
 
-				// Filter all properties for fuzzy matches with the attempted key.
-				const matches = fuzzy.filter(key, allKeys);
+			// Filter all properties for fuzzy matches with the attempted key.
+			const matches = fuzzy.filter(key, allKeys);
 
-				// If there are no matches, get all keys
-				// otherwise, take the 'string' of the match
-				const alternatives = matches.length
-					? matches.map(match => match.string)
-					: allKeys
+			// If there are no matches, get all keys
+			// otherwise, take the 'string' of the match
+			const alternatives = matches.length
+				? matches.map(match => match.string)
+				: allKeys
 
-				throw new ReferenceError(
-					`Property ${key} does not exist. Perhaps you meant: ${alternatives}`
-				);
-			}
+			throw new ReferenceError(
+				`Property ${key} does not exist. Perhaps you meant: ${alternatives}`
+			);
+		}
 
-			return target[key];
-		},
-	}
-	const Danny = {
-		user_id: 21,
-		name: 'Danny',
-		username: 'the bear',
-	}
+		return target[key];
+	},
+}
+const Danny = {
+	user_id: 21,
+	name: 'Danny',
+	username: 'the bear',
+}
 
-	const smartUser = new Proxy(Danny, accessCheck);
+const smartUser = new Proxy(Danny, accessCheck);
 
-	console.log(smartUser.usr);
-	> ReferenceError: Property usr does not exist. Perhaps you meant one of: user_id, username
-	
-	console.log(smartUser.user_name);
-	> ReferenceError: Property user_name does not exist. Perhaps you meant one of: user_id, name, username 
+console.log(smartUser.usr);
+> ReferenceError: Property usr does not exist. Perhaps you meant one of: user_id, username
 
-	console.log(smartUser.ttt)
-	> ReferenceError: Property ttt does not exist. Perhaps you meant one of: user_id, name, username.
+console.log(smartUser.user_name);
+> ReferenceError: Property user_name does not exist. Perhaps you meant one of: user_id, name, username 
 
-	console.log(`Hey ${smartUser.name}!`);
-	> Hey Danny!
-	
+console.log(smartUser.ttt)
+> ReferenceError: Property ttt does not exist. Perhaps you meant one of: user_id, name, username.
+
+console.log(`Hey ${smartUser.name}!`);
+> Hey Danny!
 ```
 
 Now, when someone tries to access a property through this Proxy, we intercept the operation with a *get* trap. It is then verified and either passes right on through or we alert the coder (via an Error) that they have a mistake and show them some potential fixes. This blows my mind. I am not 100% on its usefulness, but I love that we can add this layer on top of plain, standard, vanilla JavaScript.
@@ -209,16 +208,16 @@ This example also highlights a drawback of Proxy: unintended consequences. Becau
 To use this example more fluidly in your code, simply turn it into a function that accepts an object and applies a handler.
 
 ```javascript
-	// using accessCheck from above
-	function smartAccess(obj) {
-		return new Proxy(obj, accessCheck);
-	}
-	
-	fetch('user from server')
-		.then(resp => resp.json())
-		.then(smartAccess)
-		.then(user => console.log(`Welcome, ${user.userId}!`) );
-		> ReferenceError: Property userId does not exist. Perhaps you meant: user_id
+// using accessCheck from above
+function smartAccess(obj) {
+	return new Proxy(obj, accessCheck);
+}
+
+fetch('user from server')
+	.then(resp => resp.json())
+	.then(smartAccess)
+	.then(user => console.log(`Welcome, ${user.userId}!`) );
+	> ReferenceError: Property userId does not exist. Perhaps you meant: user_id
 ```
 
 ## Object Middleware
@@ -230,43 +229,43 @@ Let's make a small and simple interface for applying functions to *set* operatio
 Basic usage:
 
 ```javascript
-	options = {
-		key: [middleware1, middleware2, middleware3
-	}
-	const target = watch({ key: 123 }, options); 
-	target.key = value //=> target.key = middleware_3(middleware_2(middleware_1(value)))
+options = {
+	key: [middleware1, middleware2, middleware3
+}
+const target = watch({ key: 123 }, options); 
+target.key = value //=> target.key = middleware_3(middleware_2(middleware_1(value)))
 ```
 
 Now let's write it!
 
 ```javascript
-	function watch(obj, options) {
-		// Initial application of middleware 
-		for (const key in options) {
-		    // A null at the 0 index indicates an optional property
-			// i.e. do not run middleware if property does not exist.
-		    if (!(key in obj) && options[key][0] === null) continue;
+function watch(obj, options) {
+	// Initial application of middleware 
+	for (const key in options) {
+	    // A null at the 0 index indicates an optional property
+		// i.e. do not run middleware if property does not exist.
+	    if (!(key in obj) && options[key][0] === null) continue;
 
-			options[key].forEach(mWare => mWare(obj[key], key, obj) )
-		}
-
-		return new Proxy(obj, {
-			set(target, key, value) {
-				let newVal = value;
-				if (key in options) {
-				    // Skip null
-				    let mWares = options[key][0] === null
-				        ? options[key].slice(1)
-				        : options[key];
-	
-					// Reduce middleware for this key, pass the value, key, and target
-					newVal = mWares.reduce((val, mWare) => mWare(val, key, target), newVal);
-				}
-				target[key] = newVal;
-				return true;
-			}
-		});
+		options[key].forEach(mWare => mWare(obj[key], key, obj) )
 	}
+
+	return new Proxy(obj, {
+		set(target, key, value) {
+			let newVal = value;
+			if (key in options) {
+			    // Skip null
+			    let mWares = options[key][0] === null
+			        ? options[key].slice(1)
+			        : options[key];
+
+				// Reduce middleware for this key, pass the value, key, and target
+				newVal = mWares.reduce((val, mWare) => mWare(val, key, target), newVal);
+			}
+			target[key] = newVal;
+			return true;
+		}
+	});
+}
 ```
 
 Surprisingly simple!.. am I missing something? Now we can build a list of functions that we want to process before assignment happens. These could be tracking changes as in our History example above, validating properties, or: anything!
@@ -277,12 +276,12 @@ Organizations have a name and an owner, and optionally have a description and an
 
 We could declare our validating middleware like this:
 ```javascript
-	function isString(str) {
-		if (typeof str !== 'string')
-			throw new TypeError(`${str} is not a String.`);
+function isString(str) {
+	if (typeof str !== 'string')
+		throw new TypeError(`${str} is not a String.`);
 
-		return str;
-	}
+	return str;
+}
 ```
 
 But wait!
@@ -290,103 +289,103 @@ But wait!
 Luckily, we already have many a familiar and powerful library for declaring assertions such as these! Chai's assertion library throws informative errors if expectations are violated so we'll use it.
 
 ```javascript
-	import { expect } from 'chai';
+import { expect } from 'chai';
 
-	function isString(str) {
-		expect(str).to.be.a('string');
-		return str;
-	}
+function isString(str) {
+	expect(str).to.be.a('string');
+	return str;
+}
 
-	function isNumber(num) {
-		expect(num).to.be.a('number').and.not.equal(NaN);
-		return num;
-	}
+function isNumber(num) {
+	expect(num).to.be.a('number').and.not.equal(NaN);
+	return num;
+}
 
-	function longerThan(bound) {
-		return function(test) {
-			expect(test).to.have.length.above(bound);
-			return test;
-		}
+function longerThan(bound) {
+	return function(test) {
+		expect(test).to.have.length.above(bound);
+		return test;
 	}
+}
 
-	function shorterThan(bound) {
-		return function(test) {
-			expect(test).to.have.length.below(bound);
-			return test;
-		}
+function shorterThan(bound) {
+	return function(test) {
+		expect(test).to.have.length.below(bound);
+		return test;
 	}
+}
 
-	function isRegistered(email) {
-		// over simplified
-		expect(email).to.match(/.+@.+/);
-		return email;
-	}
+function isRegistered(email) {
+	// over simplified
+	expect(email).to.match(/.+@.+/);
+	return email;
+}
 
-	function makeInteger(num) {
-		return Number(num.toFixed());
-	}
+function makeInteger(num) {
+	return Number(num.toFixed());
+}
 ```
 
 Each of the above functions is middleware that fits our interface. It accepts a value (and, optionally, the property name and host Object), does something with it, then returns its new representation of the value. It's important to note that order does matter: we should verify that a value is a String before checking it for String-like characteristics. To denote optional properties, pass `null` as the first middleware for a property.
 
 ```javascript
-	// null at first position indicates an optional property
-	const orgOptions = {
-		name: [isString, shorterThan(26), longerThan(2)],
-		owner: [isString, isRegistered],
-		description: [null, isString, shorterThan(301)],
-		fee: [null, isNumber, makeInteger],
-	}
-	const org = {
-		name: 'Needs a name',
-		owner: 'Must be registered',
-	}
+// null at first position indicates an optional property
+const orgOptions = {
+	name: [isString, shorterThan(26), longerThan(2)],
+	owner: [isString, isRegistered],
+	description: [null, isString, shorterThan(301)],
+	fee: [null, isNumber, makeInteger],
+}
+const org = {
+	name: 'Needs a name',
+	owner: 'Must be registered',
+}
 
-	const orgCreator = watch(org, orgOptions);
+const orgCreator = watch(org, orgOptions);
 
-	orgCreator.name = 'Skydiving Scarf Knitters Association';
-	> AssertionError! expected 'Skydiving Sca..' to have length below 26
-	orgCreator.name = 'Skydiving Rocks!';
+orgCreator.name = 'Skydiving Scarf Knitters Association';
+> AssertionError! expected 'Skydiving Sca..' to have length below 26
+orgCreator.name = 'Skydiving Rocks!';
 
-	// cardholding member of the skydiving scarf knitters assoc.
-	orgCreator.owner = 'ferris@beul.ler';
+// cardholding member of the skydiving scarf knitters assoc.
+orgCreator.owner = 'ferris@beul.ler';
 
-	orgCreator.fee = 'a fine scarf';
-	> AssertionError: expected 'a fine scarf' to be of type number.
-	orgCreator.fee = 12.34;
+orgCreator.fee = 'a fine scarf';
+> AssertionError: expected 'a fine scarf' to be of type number.
+orgCreator.fee = 12.34;
 
-	console.log(orgCreator);
-	> { name: 'Skydiving Rocks!', owner: 'ferris@buel.ler', fee: 12 }
+console.log(orgCreator);
+> { name: 'Skydiving Rocks!', owner: 'ferris@buel.ler', fee: 12 }
 ```
 
 This implementation is pretty extensible so we could also implement tracking:
 
 ```javascript
-	function recorder (val, key, target) {
-		const hist = Symbol.for('history');
-		const history = target[hist] = target[hist] || {};
+function recorder (val, key, target) {
+	const hist = Symbol.for('history');
+	const history = target[hist] = target[hist] || {};
+
+	key in history
+		? history[key].push(val)
+		: history[key] = [val];
 	
-		key in history
-			? history[key].push(val)
-			: history[key] = [val];
-		
-		return val;
+	return val;
 
-		// Alternatively, database pseudocode
-		// fetch('database$user', { method: 'PUT', body: {key: val} })
-	}
+	// Alternatively, database pseudocode
+	// fetch('database$user', { method: 'PUT', body: {key: val} })
+}
 
-	// now attach this tracker to the fee property
-	orgOptions.fee.push(recorder);
+// now attach this tracker to the fee property
+orgOptions.fee.push(recorder);
 
-	// make a new Proxy
-	const orgCreator = watch(org, orgOptions);
+// make a new Proxy
+const orgCreator = watch(org, orgOptions);
 
-	orgCreator.fee = 12.34;
-	orgCreator.fee = 14.20;
+orgCreator.fee = 12.34;
+orgCreator.fee = 14.20;
 
-	console.log(orgCreator[Symbol.for('history')]);
-	> { fee: [12.34, 14.20] }
+console.log(orgCreator[Symbol.for('history')]);
+> { fee: [12.34, 14.20] }
 ```
 
 Awesome! With just another little code block we can apply history keeping middleware to any property we care about. The middlewares defined above (isString, makeInteger, etc..) can be considered plugins that could be applied elsewhere and to other Objects. This idea of pluggable Object middleware is exciting because it allows a library or community of middleware plugins. For example, a APIsubscribe plugin that allows you to subscribe an Object or property to http request like a PUT to a server/database or a GET to an API.
