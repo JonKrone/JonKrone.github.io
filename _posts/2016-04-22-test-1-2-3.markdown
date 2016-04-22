@@ -1,0 +1,6 @@
+---
+published: false
+title: Test [1,2,3]
+layout: post
+---
+Test post to create _posts directory
