@@ -1,11 +1,12 @@
 ---
 published: true
-title: Proxy Primer
+title: A Primer to Proxy
 layout: post
 ---
+
 # <center> Proxies
 
-ECMAScript 2015, or ES6, introduces Proxy, a feature that allows us to intercept and customize many of the most basic ways that we interact with Objects. Proxies are unique in how close to internal JavaScript operations they allow us to go but, as always, with great power comes great responsibility. Let's dive in to Proxy and explore some of the things to be excited and cautious (but mostly, excited) about.
+ECMAScript 2015 (ES6), introduces Proxy, a feature that allows us to intercept and customize many of the most basic ways that we interact with Objects. A Proxy is an invisible layer in front of an Object that gives us a sneak-peek on certain operations. They are unique in how close to internal JavaScript workings they allow us to go but, as always, with great power comes great responsibility. Let's dive in to Proxy and explore some of the things to be excited and cautious (but mostly, excited) about.
 
 ## Making Objects Talk
 
