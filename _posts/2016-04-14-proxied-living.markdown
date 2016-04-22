@@ -263,7 +263,9 @@ function watch(obj, options) {
 					: options[key];
 
 				// Pass value, key, and target
-				newVal = mWares.reduce((val, mWare) => mWare(val, key, target), newVal);
+				newVal = mWares.reduce(
+					(val, mWare) => mWare(val, key, target)
+				, newVal);
 			}
 			target[key] = newVal;
 			return true;
@@ -279,6 +281,7 @@ I think validating properties is a useful feature. We can compose a list of func
 Organizations have a name and an owner, and optionally have a description and annual fee. Names must be between 3 and 25 characters, owners must be emails, descriptions are less than 300 characters, and a fee must be an integer (no pesky cents). These are the constraints we'll enforce in our organization creator.
 
 We could declare our validating middleware like this:
+
 ```javascript
 function isString(str) {
 	if (typeof str !== 'string')
