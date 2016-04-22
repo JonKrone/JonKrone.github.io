@@ -106,7 +106,8 @@ function track(obj) {
 	});
 
 	// Attach history via a Symbol on the tracked Object
-	// A Symbol avoids accidentally overriding a property, allowing us to return only a decorated Object
+	// A Symbol avoids accidentally overriding a property,
+	// allowing us to return only a decorated Object
 	const hist = Symbol.for('history');
 	trackedObj[hist] = history;
 
@@ -171,7 +172,8 @@ const accessCheck = {
 				: allKeys
 
 			throw new ReferenceError(
-				`Property ${key} does not exist. Perhaps you meant: ${alternatives}`
+				`Property ${key} does not exist. ` +
+				`Perhaps you meant: ${alternatives}`
 			);
 		}
 
@@ -190,10 +192,12 @@ console.log(smartUser.usr);
 > ReferenceError: Property usr does not exist. Perhaps you meant one of: user_id, username
 
 console.log(smartUser.user_name);
-> ReferenceError: Property user_name does not exist. Perhaps you meant one of: user_id, name, username 
+> ReferenceError: Property user_name does not exist. Perhaps you meant one of: user_id,
+name, username 
 
 console.log(smartUser.ttt)
-> ReferenceError: Property ttt does not exist. Perhaps you meant one of: user_id, name, username.
+> ReferenceError: Property ttt does not exist. Perhaps you meant one of: user_id, name,
+username.
 
 console.log(`Hey ${smartUser.name}!`);
 > Hey Danny!
@@ -242,9 +246,9 @@ Now let's write it!
 function watch(obj, options) {
 	// Initial application of middleware 
 	for (const key in options) {
-	    // A null at the 0 index indicates an optional property
+		// A null at the 0 index indicates an optional property
 		// i.e. do not run middleware if property does not exist.
-	    if (!(key in obj) && options[key][0] === null) continue;
+		if (!(key in obj) && options[key][0] === null) continue;
 
 		options[key].forEach(mWare => mWare(obj[key], key, obj) )
 	}
@@ -253,12 +257,12 @@ function watch(obj, options) {
 		set(target, key, value) {
 			let newVal = value;
 			if (key in options) {
-			    // Skip null
-			    let mWares = options[key][0] === null
-			        ? options[key].slice(1)
-			        : options[key];
+				// Skip null
+				let mWares = options[key][0] === null
+					? options[key].slice(1)
+					: options[key];
 
-				// Reduce middleware for this key, pass the value, key, and target
+				// Pass value, key, and target
 				newVal = mWares.reduce((val, mWare) => mWare(val, key, target), newVal);
 			}
 			target[key] = newVal;
@@ -368,7 +372,7 @@ function recorder (val, key, target) {
 	key in history
 		? history[key].push(val)
 		: history[key] = [val];
-	
+
 	return val;
 
 	// Alternatively, database pseudocode
