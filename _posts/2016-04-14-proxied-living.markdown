@@ -14,7 +14,7 @@ A Proxy is made of a **target** and a **handler**: `new Proxy(target, handler)`.
 
 ### Moo cow, moo
 
-We'll start simple and report the value of a property when it is looked up. In the example below, we customize property lookup by defining a *trap*, `get(target, name)`, in the `handler` and construct a Proxy with it and the target.
+We'll start simple and report the value of a property when it is looked up (`obj.prop`). In the example below, we customize property lookup by defining a *trap*, `get(target, name)`, in the `handler` and construct a Proxy with it and the target.
 
 ```javascript
 const target = {
@@ -37,7 +37,7 @@ talkingTarget.unicorn;
 > target says undefined!
 ```
 
-Nice! In a way, we've overridden the standard behavior of accessing a property, one of the most common (if not most common) things we do in JavaScript. With Proxy, we are able to manipulate some of the fundamental semantics of the language, something not possible before ES6. It opens up to JavaScript coders a new type of metaprogramming, or programming which can manipulate itself.
+Nice! In a way, we've overridden the standard behavior of accessing a property, one of the most common (if not most common) things we do in JavaScript. With Proxy, we are able to manipulate some of the fundamental semantics of the language, something not possible before ES6. It opens up to JavaScript coders a new aspect of metaprogramming, or programming which can manipulate itself.
 
 **Woah**, *right!?* We can intercept fundamental operations before they happen!
 
