@@ -10,7 +10,7 @@ ECMAScript 2015 (ES6), introduces Proxy, a feature that allows us to intercept a
 
 ## Making Objects Talk
 
-A Proxy is made of a **target** and a **handler**: `new Proxy(target, handler)`. The *target* is the Object whose calls we want to intercept and the *handler* optionally overrides, or **traps**, those operations. If an operation happens and a trap is defined, the handler intercepts the operation. If the handler does not define a trap for an operation, it just passes the operation to the original Object. Basic operations are things like getting a property of an object (`obj.prop`) or assigning a value to a property (`obj.prop = value`).
+A Proxy is made of a **target** and a **handler**: `new Proxy(target, handler)`. The *target* is the Object whose calls we want to intercept and the *handler* optionally overrides, or **traps**, those operations. Basic operations are things like getting a property of an object (`obj.prop`) or assigning value to a property (`obj.prop = value`). If an operation happens and a trap is defined, the handler intercepts the operation and if a trap is not defined for that operation, it passes the operation through to the original Object.
 
 ### Moo cow, moo
 
