@@ -406,12 +406,9 @@ I am sure that this is not the best implementation of a general Object middlewar
 
 ## Meta end
 
-
-By giving such clear access to fundamental operations like these, Proxies make it easy to perform a whole new suite of actions.
+For many purposes, Proxy is just another tool in the box, but often overkill, so use it wisely. If you do decide to use Proxy you may need to consider: another layer of programming logic increases time and space requirements, customizing fundamental operations can lead to unintended consequences, and, perhaps most importantly, Proxies are **not** explicit so you must be very clear when they are used.
 
 This has been a short introduction but I hope that it has shown you some of the potential of these techniques. By giving such clear access to fundamental operations, Proxies make it easy to perform a whole new suite of actions. 
-
-For many purposes, Proxy is just another tool in the box, but often overkill, so use it wisely. If you do decide to use Proxy you may need to consider: another layer of programming logic increases time and space requirements, customizing fundamental operations can lead to unintended consequences, and, perhaps most importantly, Proxies are **not** explicit so you must be very clear when they are used.
 
 I was first enthralled by Proxies via by Dr. Axel Rauschmayer's book, [Exploring ES6][4]. In particular, chapter 28: [Metaprogramming with proxies][5] and wholeheartedly encourage anyone with additional interest to explore his book and blog. Thanks!
 
